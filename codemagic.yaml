@@ -1,29 +1,27 @@
-# CLEAN codemagic.yaml - NO syntax errors
 workflows:
-  ios-simple:
-    name: Simple iOS Build
+  ios-auto-sign:
+    name: iOS with Auto-Signing
     environment:
       flutter: "3.38.4"
       xcode: 26.2
-    
+      # ENABLE automatic code signing
+      ios_signing: 
+        distribution_type: ad_hoc  # or development
+      
     scripts:
-      - name: Build iOS
+      - name: Build with Signing
         script: |
           flutter clean
           flutter pub get
-          flutter build ios --release --no-codesign
           
-          echo "=== Build completed ==="
-          if [ -d "build/ios/iphoneos" ]; then
-            ls -la build/ios/iphoneos/
-            echo "App file is ready!"
-          else
-            echo "Build directory not found"
-            find . -name "*.app" 2>/dev/null
-          fi
+          # Build WITH code signing (remove --no-codesign)
+          flutter build ipa --release
+          
+          echo "=== Signed IPA created ==="
+          ls -la build/ios/ipa/
     
     artifacts:
-      - build/ios/iphoneos/Runner.app
+      - build/ios/ipa/*.ipa
     
     publishing:
       email:
