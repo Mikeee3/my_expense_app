@@ -1,0 +1,51 @@
+# codemagic.yaml - Basic iOS build for personal use
+workflows:
+  ios-personal:
+    name: Build iOS IPA
+    environment:
+      groups:
+        - app_store_credentials  # You'll create this later
+      vars:
+        BUNDLE_ID: "com.example.myexperience"  # Change this!
+        APP_NAME: "ExpenseApp"
+      xcode: 15.0  # Latest Xcode
+      cocoapods: default
+      flutter: stable
+    
+    # Only build on main branch
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+    
+    # Build scripts
+    scripts:
+      - name: Install Flutter dependencies
+        script: |
+          flutter pub get
+      
+      - name: Set up code signing
+        script: |
+          echo "Setting up code signing..."
+          # Will be configured via Codemagic UI
+      
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa --release --no-codesign
+          echo "Build completed!"
+    
+    # What files to save after build
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
+    
+    # Publish settings (email notification)
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com  # Change to your email
+        notify:
+          success: true
+          failure: true
