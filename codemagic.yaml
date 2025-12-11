@@ -1,29 +1,39 @@
 workflows:
-  ios-auto-sign:
-    name: iOS with Auto-Signing
+  ios-codemagic-sign:
+    name: iOS Codemagic Sign
     environment:
       flutter: "3.38.4"
       xcode: 26.2
-      # ENABLE automatic code signing
-      ios_signing: 
-        distribution_type: ad_hoc  # or development
-      
+      ios_signing:
+        distribution_type: development
+        bundle_identifier: "io.codemagic.app"  # Codemagic can sign this
+    
     scripts:
-      - name: Build with Signing
+      - name: Update Bundle ID
+        script: |
+          # Backup original
+          cp ios/Runner/Info.plist ios/Runner/Info.plist.backup
+          
+          # Set to Codemagic's required bundle ID
+          plutil -replace CFBundleIdentifier \
+            -string "io.codemagic.app" \
+            ios/Runner/Info.plist
+          
+          # Also update Xcode project if needed
+          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = io.codemagic.app;/' \
+            ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+      
+      - name: Build
         script: |
           flutter clean
           flutter pub get
-          
-          # Build WITH code signing (remove --no-codesign)
+          cd ios && pod install && cd ..
           flutter build ipa --release
-          
-          echo "=== Signed IPA created ==="
-          ls -la build/ios/ipa/
+      
+      - name: Restore Bundle ID
+        script: |
+          # Restore original
+          mv ios/Runner/Info.plist.backup ios/Runner/Info.plist
     
     artifacts:
       - build/ios/ipa/*.ipa
-    
-    publishing:
-      email:
-        recipients:
-          - your-email@example.com
