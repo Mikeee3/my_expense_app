@@ -1,51 +1,61 @@
-# codemagic.yaml - Basic iOS build for personal use
 workflows:
-  ios-personal:
-    name: Build iOS IPA
+  ios-with-ipa:
+    name: Build iOS with IPA
     environment:
-      groups:
-        - app_store_credentials  # You'll create this later
-      vars:
-        BUNDLE_ID: "com.example.myexperience"  # Change this!
-        APP_NAME: "ExpenseApp"
-      xcode: 26.2  # Latest Xcode
+      xcode: 15.2
+      flutter: 3.22.0
       cocoapods: default
-      flutter: stable
+      
+      groups:
+        - app_store_credentials  # If you have certificates
     
-    # Only build on main branch
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: 'main'
-          include: true
-    
-    # Build scripts
     scripts:
-      - name: Install Flutter dependencies
+      - name: Build iOS Archive
         script: |
+          flutter clean
           flutter pub get
-      
-      - name: Set up code signing
+          
+          # Build the archive (.xcarchive)
+          flutter build ios --release --no-codesign
+          
+          echo "=== Archive created at ==="
+          find build -name "*.xcarchive" -type d
+          
+      - name: Create IPA from Archive
         script: |
-          echo "Setting up code signing..."
-          # Will be configured via Codemagic UI
-      
-      - name: Build iOS IPA
-        script: |
-          flutter build ipa --release --no-codesign
-          echo "Build completed!"
+          # Create export_options.plist if not exists
+          if [ ! -f "ios/export_options.plist" ]; then
+            cat > ios/export_options.plist << EOF
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+                <key>method</key>
+                <string>development</string>
+                <key>teamID</key>
+                <string>XXXXXXXXXX</string>  # Your team ID or leave empty
+            </dict>
+            </plist>
+            EOF
+          fi
+          
+          # Convert xcarchive to IPA
+          xcodebuild -exportArchive \
+            -archivePath "build/ios/archive/Runner.xcarchive" \
+            -exportOptionsPlist "ios/export_options.plist" \
+            -exportPath "build/ios/ipa" \
+            -allowProvisioningUpdates
+          
+          echo "=== IPA created at ==="
+          ls -la build/ios/ipa/
     
-    # What files to save after build
     artifacts:
+      # BOTH formats
       - build/ios/ipa/*.ipa
-      - build/ios/archive/*.xcarchive
+      - build/ios/archive/Runner.xcarchive
+      - build/ios/iphoneos/Runner.app
     
-    # Publish settings (email notification)
     publishing:
       email:
         recipients:
-          - your-email@example.com  # Change to your email
-        notify:
-          success: true
-          failure: true
+          - your-email@example.com
