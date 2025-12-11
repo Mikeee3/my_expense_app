@@ -8,7 +8,7 @@ workflows:
       vars:
         BUNDLE_ID: "com.example.myexperience"  # Change this!
         APP_NAME: "ExpenseApp"
-      xcode: 15.0  # Latest Xcode
+      xcode: 15.3  # Latest Xcode
       cocoapods: default
       flutter: stable
     
