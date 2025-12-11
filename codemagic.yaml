@@ -3,7 +3,7 @@ workflows:
     name: Build iOS with IPA
     environment:
       xcode: 26.2
-      flutter: 3.22.0
+      flutter: 3.38.4
       cocoapods: default
       
       groups:
