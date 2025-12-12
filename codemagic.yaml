@@ -1,24 +1,31 @@
 workflows:
   ios-test:
-    name: iOS 7-Day Test Build
+    name: iOS Test Build
     environment:
       flutter: "stable"
-      xcode: latest
       ios_signing:
         distribution_type: development
-        bundle_identifier: "com.example.myexperience"  # ← ADD THIS
+        bundle_identifier: "com.personal.myexpenseapp"
     
     scripts:
-      - name: Set Bundle ID in Info.plist
+      - name: Debug Current Bundle ID
         script: |
-          # Make sure Info.plist matches
-          plutil -replace CFBundleIdentifier -string "com.personal.myexpenseapp" ios/Runner/Info.plist
-          echo "✅ Bundle ID updated in Info.plist"
-      
-      - name: Build IPA
-        script: |
-          flutter build ipa --release --export-method development
-          echo "✅ IPA built for 7-day testing"
-    
-    artifacts:
-      - build/ios/ipa/*.ipa
+          echo "=== Checking current bundle ID ==="
+          
+          # Check Info.plist
+          if [ -f "ios/Runner/Info.plist" ]; then
+            echo "Info.plist CFBundleIdentifier:"
+            plutil -extract CFBundleIdentifier raw ios/Runner/Info.plist || echo "Not found in Info.plist"
+          fi
+          
+          # Check Xcode project
+          if [ -f "ios/Runner.xcodeproj/project.pbxproj" ]; then
+            echo -e "\nXcode PRODUCT_BUNDLE_IDENTIFIER:"
+            grep -n "PRODUCT_BUNDLE_IDENTIFIER" ios/Runner.xcodeproj/project.pbxproj || echo "Not found in project"
+          fi
+          
+          # Check Flutter config
+          echo -e "\nChecking pubspec.yaml..."
+          if [ -f "pubspec.yaml" ]; then
+            grep -i "name:" pubspec.yaml | head -1
+          fi
