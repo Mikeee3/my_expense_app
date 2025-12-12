@@ -1,38 +1,12 @@
 workflows:
-  ios-set-bundle-id:
-    name: iOS - Set Bundle ID and Sign
+  ios-simple:
     environment:
-      flutter: "3.38.4"
-      xcode: 26.2
+      flutter: stable
       ios_signing:
         distribution_type: development
-        bundle_identifier: "com.personal.myexpenseapp"  # We'll force this ID
     
     scripts:
-      - name: Force Set Bundle ID
-        script: |
-          echo "Setting bundle ID to: com.personal.myexpenseapp"
-          
-          # 1. Update Info.plist directly (overrides the variable)
-          plutil -replace CFBundleIdentifier \
-            -string "com.personal.myexpenseapp" \
-            ios/Runner/Info.plist
-          
-          # 2. Update Xcode project file
-          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = [^;]*;/PRODUCT_BUNDLE_IDENTIFIER = com.personal.myexpenseapp;/g' \
-            ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || echo "Updated project file"
-          
-          echo "✅ Bundle ID set"
-      
-      - name: Build with Auto-Sign
-        script: |
-          # Apply Codemagic's automatic signing
-          xcode-project use-profiles
-          
-          # Build
-          flutter build ipa --release --export-method development
-          
-          echo "✅ Build with 7-day signing complete"
+      - flutter build ipa --release --export-method development
     
     artifacts:
       - build/ios/ipa/*.ipa
