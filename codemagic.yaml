@@ -1,16 +1,25 @@
 workflows:
   ios-test:
-    name: iOS Test Build
+    name: iOS 7-Day Test Build
     environment:
       flutter: "stable"
+      xcode: latest
       ios_signing:
         distribution_type: development
-        automatic: true
+        automatic: true  # Let Codemagic handle everything
     
     scripts:
-      - name: Build
+      - name: Set Bundle ID
         script: |
+          # Just set the bundle ID in Info.plist
+          plutil -replace CFBundleIdentifier -string "com.personal.myexpenseapp" ios/Runner/Info.plist
+          echo "✅ Bundle ID set to com.personal.myexpenseapp"
+      
+      - name: Build IPA
+        script: |
+          # Build with automatic development signing
           flutter build ipa --release --export-method development
+          echo "✅ IPA built"
     
     artifacts:
       - build/ios/ipa/*.ipa
