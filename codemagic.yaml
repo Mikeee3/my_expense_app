@@ -1,12 +1,16 @@
 workflows:
-  ios-simple:
+  ios-test:
+    name: iOS Test Build
     environment:
-      flutter: stable
+      flutter: "stable"
       ios_signing:
         distribution_type: development
+        automatic: true
     
     scripts:
-      - flutter build ipa --release --export-method development
+      - name: Build
+        script: |
+          flutter build ipa --release --export-method development
     
     artifacts:
       - build/ios/ipa/*.ipa
