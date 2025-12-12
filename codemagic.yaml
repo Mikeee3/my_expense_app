@@ -6,20 +6,19 @@ workflows:
       xcode: latest
       ios_signing:
         distribution_type: development
-        automatic: true  # Let Codemagic handle everything
+        bundle_identifier: "com.personal.myexpenseapp"  # ← ADD THIS
     
     scripts:
-      - name: Set Bundle ID
+      - name: Set Bundle ID in Info.plist
         script: |
-          # Just set the bundle ID in Info.plist
+          # Make sure Info.plist matches
           plutil -replace CFBundleIdentifier -string "com.personal.myexpenseapp" ios/Runner/Info.plist
-          echo "✅ Bundle ID set to com.personal.myexpenseapp"
+          echo "✅ Bundle ID updated in Info.plist"
       
       - name: Build IPA
         script: |
-          # Build with automatic development signing
           flutter build ipa --release --export-method development
-          echo "✅ IPA built"
+          echo "✅ IPA built for 7-day testing"
     
     artifacts:
       - build/ios/ipa/*.ipa
